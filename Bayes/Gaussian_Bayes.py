@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 # @Time :2021/6/17 11:45
 # @Author :LiZeKai
-# @Site : 
+# @Site :
 # @File : Gaussian_Bayes.py
 # @Software : PyCharm
 
@@ -27,31 +27,48 @@ class GaussBayes:
 
     # calculate the prior probability of p_c
     def GetPrior(self, label):
-        """
-        填补此处
-        """
-        pass
-        
+        lab = pd.Series(label).value_counts().sort_index()
+        self.prior = np.array([i / sum(lab) for i in lab])
+
     # calculate the average
     def GetAverage(self, data, label):
-        """
-        填补此处
-        """
-        pass
+        self.avg = np.zeros((2, len(data[0])))
+        num = np.zeros((2, len(data[0])))
+        for i in range(len(label)):
+            for j in range(len(data[i])):
+                if label[i] == 0:
+                    num[0][j] += 1
+                    self.avg[0][j] += data[i][j]
+                else:
+                    num[1][j] += 1
+                    self.avg[1][j] += data[i][j]
+        for j in range(len(data[0])):
+            self.avg[0][j] /= float(num[0][j])
+            self.avg[1][j] /= float(num[1][j])
 
     # calculate the std
     def GetStd(self, data, label):
-        """
-        填补此处
-        """
-        pass
-
+        self.var = np.zeros((2, len(data[0])))
+        self.GetAverage(data, label)
+        for i in range(len(label)):
+            if label[i] == 0:
+                for j in range(len(data[i])):
+                    self.var[0][j] += (data[i][j] - self.avg[0][j]) ** 2
+            else:
+                for j in range(len(data[i])):
+                    self.var[1][j] += (data[i][j] - self.avg[1][j]) ** 2
+            self.var = self.var**0.5
     # calculate the likelihood based on the density function
     def GetLikelihood(self, x):
-        """
-        填补此处
-        """
-        pass
+        xishu =np.zeros((2,len(x)))
+        xishu1=[0.0,0.0]
+        for i in range(len(list(x))):
+            xishu[0][i] = np.log((1 / sqrt(2 * pi * self.var[0][i])))-((x[i] - self.avg[0][i]) ** 2 / (2 * self.var[0][i]))
+            xishu[1][i] = np.log((1 / sqrt(2 * pi * self.var[1][i])))-((x[i] - self.avg[1][i]) ** 2 / (2 * self.var[1][i]))
+        for i in range(2):
+            xishu1[0] = xishu[0].sum()
+            xishu1[1] = xishu[1].sum()
+        return xishu1
 
     def fit(self, data, label):
         self.tag_num = len(np.unique(label))
